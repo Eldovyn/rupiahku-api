@@ -8,4 +8,11 @@ services:
       - "8000:8000"
     env_file:
       - .env
+    environment:
+      - RPK_STELLAR
+      - ADMIN_STELLAR
+      - SEPOLIA_PRIVATE_KEY
+      - SEPOLIA_CONTRACT_ADDRESS
+      - RPK_SEPOLIA
+      - ADMIN_SEPOLIA
     restart: unless-stopped
