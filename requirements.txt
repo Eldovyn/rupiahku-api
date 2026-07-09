@@ -1,0 +1,5 @@
+fastapi==0.111.0
+uvicorn==0.30.1
+stellar-sdk==9.1.0
+python-dotenv==1.0.1
+web3==6.20.1
