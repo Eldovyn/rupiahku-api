@@ -22,9 +22,16 @@ class FaucetController:
         self.soroban_server = SorobanServer(Config.RPC_URL)
         self.horizon_server = HorizonServer(Config.HORIZON_URL)
         
-        self.w3 = Web3(Web3.HTTPProvider(Config.SEPOLIA_RPC_URL))
-        self.sepolia_contract = self.w3.eth.contract(address=self.w3.to_checksum_address(Config.SEPOLIA_CONTRACT_ADDRESS), abi=ERC20_MINT_ABI)
-        self.sepolia_account = self.w3.eth.account.from_key(Config.SEPOLIA_PRIVATE_KEY)
+        try:
+            self.w3 = Web3(Web3.HTTPProvider(Config.SEPOLIA_RPC_URL))
+            self.sepolia_contract = self.w3.eth.contract(address=self.w3.to_checksum_address(Config.SEPOLIA_CONTRACT_ADDRESS), abi=ERC20_MINT_ABI)
+            self.sepolia_account = self.w3.eth.account.from_key(Config.SEPOLIA_PRIVATE_KEY)
+            self.sepolia_error = None
+        except Exception as e:
+            self.w3 = None
+            self.sepolia_account = None
+            self.sepolia_contract = None
+            self.sepolia_error = str(e)
 
     def mint_token(self, req: MintRequest):
         if req.network == "sepolia":
@@ -32,6 +39,9 @@ class FaucetController:
         return self._mint_stellar(req)
 
     def _mint_sepolia(self, req: MintRequest):
+        if self.sepolia_account is None:
+            raise HTTPException(status_code=500, detail={"error": f"Sepolia misconfigured: {self.sepolia_error}"})
+        
         if req.amount <= 0:
             raise HTTPException(status_code=400, detail={"amount": "IS_INVALID"})
             
