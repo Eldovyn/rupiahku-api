@@ -11,8 +11,8 @@ class Config:
     RPC_URL = "https://soroban-testnet.stellar.org"
     HORIZON_URL = "https://horizon-testnet.stellar.org"
     
-    SEPOLIA_PRIVATE_KEY = os.environ.get("SEPOLIA_PRIVATE_KEY")
-    SEPOLIA_CONTRACT_ADDRESS = os.environ.get("SEPOLIA_CONTRACT_ADDRESS")
+    SEPOLIA_PRIVATE_KEY = os.environ.get("SEPOLIA_PRIVATE_KEY") or os.environ.get("RPK_SEPOLIA")
+    SEPOLIA_CONTRACT_ADDRESS = os.environ.get("SEPOLIA_CONTRACT_ADDRESS") or os.environ.get("ADMIN_SEPOLIA")
     SEPOLIA_RPC_URL = os.environ.get("SEPOLIA_RPC_URL", "https://rpc.sepolia.org")
 
     @classmethod
