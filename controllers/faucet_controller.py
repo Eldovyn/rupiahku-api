@@ -57,6 +57,7 @@ class FaucetController:
             tx = self.sepolia_contract.functions.mint(to_address, amount_wei).build_transaction({
                 'chainId': 11155111,
                 'nonce': nonce,
+                'from': self.sepolia_account.address,
             })
             
             signed_tx = self.w3.eth.account.sign_transaction(tx, private_key=Config.SEPOLIA_PRIVATE_KEY)
