@@ -18,7 +18,37 @@ with open(abi_path, 'r') as f:
 
 class FaucetController:
     def __init__(self):
-        self.admin_keypair = Keypair.from_secret(Config.ADMIN_STELLAR)
+        # Lazy init: jangan crash saat ENV belum ready (Dokploy .env di-.dockerignore)
+        # Error akan dilaporkan jelas di /health dan 500 di /mint, bukan stacktrace import
+        self._init_error = None
+        try:
+            Config.validate()
+        except RuntimeError as e:
+            self._init_error = str(e)
+            self.admin_keypair = None
+            self.soroban_server = None
+            self.horizon_server = None
+            self.w3 = None
+            self.sepolia_account = None
+            self.sepolia_contract = None
+            self.sepolia_error = str(e)
+            print(f"[FaucetController] ENV missing, defer init: {e}")
+            return
+
+        try:
+            self.admin_keypair = Keypair.from_secret(Config.ADMIN_STELLAR)
+        except Exception as e:
+            self._init_error = f"ADMIN_STELLAR invalid: {e}"
+            self.admin_keypair = None
+            self.soroban_server = None
+            self.horizon_server = None
+            self.w3 = None
+            self.sepolia_account = None
+            self.sepolia_contract = None
+            self.sepolia_error = str(e)
+            print(f"[FaucetController] ADMIN_STELLAR invalid: {e}")
+            return
+
         self.soroban_server = SorobanServer(Config.RPC_URL)
         self.horizon_server = HorizonServer(Config.HORIZON_URL)
         
@@ -33,7 +63,28 @@ class FaucetController:
             self.sepolia_contract = None
             self.sepolia_error = str(e)
 
+    def _ensure_ready(self):
+        # Dipanggil tiap request — handle kasus container start tanpa ENV lalu di-restart dengan ENV (re-validate)
+        if self._init_error:
+            # Coba re-validate jika ENV sekarang sudah ada (mis. setelah Dokploy set ENV + restart)
+            try:
+                Config.validate()
+                # Re-init kalau tadi gagal karena ENV
+                print("[FaucetController] ENV now present, re-initializing...")
+                self.__init__()
+                if self._init_error:
+                    raise RuntimeError(self._init_error)
+            except RuntimeError as e:
+                raise HTTPException(status_code=500, detail={
+                    "error": "Server misconfigured: ENV missing",
+                    "missing": str(e),
+                    "hint": "Di Dokploy: Service > Environment set ADMIN_STELLAR, RPK_STELLAR, SEPOLIA_PRIVATE_KEY, SEPOLIA_CONTRACT_ADDRESS lalu Rebuild. .env tidak ter-copy karena .dockerignore."
+                })
+        if self.admin_keypair is None or self.soroban_server is None:
+            raise HTTPException(status_code=500, detail={"error": f"Stellar misconfigured: {self._init_error or self.sepolia_error}"})
+
     def mint_token(self, req: MintRequest):
+        self._ensure_ready()
         if req.network == "sepolia":
             return self._mint_sepolia(req)
         return self._mint_stellar(req)

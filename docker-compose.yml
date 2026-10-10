@@ -6,11 +6,17 @@ services:
     container_name: rpk-faucet-api
     ports:
       - "8000:8000"
+    # .env dipakai lokal saja; di Dokploy .env tidak ter-copy karena .dockerignore,
+    # jadi ENV wajib di-set di Dokploy Dashboard > Service > Environment
+    # env_file dibuat opsional agar compose tidak error saat file hilang di server
     env_file:
-      - .env
+      - path: .env
+        required: false
     environment:
-      - RPK_STELLAR
-      - ADMIN_STELLAR
-      - SEPOLIA_PRIVATE_KEY
-      - SEPOLIA_CONTRACT_ADDRESS
+      # fallback ${VAR:-} agar compose tetap valid meski ENV belum di-set (health akan jelaskan)
+      - ADMIN_STELLAR=${ADMIN_STELLAR:-}
+      - RPK_STELLAR=${RPK_STELLAR:-}
+      - SEPOLIA_PRIVATE_KEY=${SEPOLIA_PRIVATE_KEY:-}
+      - SEPOLIA_CONTRACT_ADDRESS=${SEPOLIA_CONTRACT_ADDRESS:-}
+      - SEPOLIA_RPC_URL=${SEPOLIA_RPC_URL:-https://ethereum-sepolia-rpc.publicnode.com}
     restart: unless-stopped
