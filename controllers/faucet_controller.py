@@ -12,7 +12,7 @@ import os
 from configs.env import Config
 from schemas.faucet_schema import MintRequest
 
-abi_path = os.path.join(os.path.dirname(__file__), '..', 'abi', 'RupiahKU.json')
+abi_path = os.path.join(os.path.dirname(__file__), '..', 'abi', 'RupiahKu.json')
 with open(abi_path, 'r') as f:
     ERC20_MINT_ABI = json.load(f)
 
@@ -100,7 +100,6 @@ class FaucetController:
                 base_fee=10000
             )
             
-            admin_address_val = scval.to_address(self.admin_keypair.public_key)
             to_address_val = scval.to_address(req.wallet_address)
             contract_amount = req.amount * (10**7)
             amount_val = scval.to_int128(contract_amount)
@@ -108,7 +107,7 @@ class FaucetController:
             tx_builder.append_invoke_contract_function_op(
                 contract_id=Config.CONTRACT_ID,
                 function_name="mint",
-                parameters=[admin_address_val, to_address_val, amount_val]
+                parameters=[to_address_val, amount_val]
             )
             
             tx = tx_builder.build()

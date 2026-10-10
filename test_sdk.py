@@ -22,14 +22,13 @@ tx_builder = TransactionBuilder(
     base_fee=10000
 )
 
-admin_address_val = scval.to_address(admin_keypair.public_key)
 to_address_val = scval.to_address("GDJ4JOYXVHVS6VPL6YAIKWABCLB2NJVQBKBRHCWSQQTVWBHTPZ3BLQFX")
 amount_val = scval.to_int128(100 * 10**7)
 
 tx_builder.append_invoke_contract_function_op(
     contract_id=CONTRACT_ID,
     function_name="mint",
-    parameters=[admin_address_val, to_address_val, amount_val]
+    parameters=[to_address_val, amount_val]
 )
 
 tx = tx_builder.build()

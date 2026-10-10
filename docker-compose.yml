@@ -13,6 +13,4 @@ services:
       - ADMIN_STELLAR
       - SEPOLIA_PRIVATE_KEY
       - SEPOLIA_CONTRACT_ADDRESS
-      - RPK_SEPOLIA
-      - ADMIN_SEPOLIA
     restart: unless-stopped
